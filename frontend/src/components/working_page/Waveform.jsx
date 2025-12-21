@@ -74,7 +74,7 @@ export default function Waveform({
   /* ---------------- RENDER ---------------- */
   return (
     <motion.div
-      className="flex items-end gap-1 h-14"
+      className="flex items-end gap-1 h-14 mt-10"
       animate={
         mode === "error"
           ? { x: [0, -4, 4, -2, 2, 0] }

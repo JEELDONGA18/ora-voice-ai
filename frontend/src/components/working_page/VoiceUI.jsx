@@ -15,7 +15,8 @@ export default function VoiceUI() {
   // idle | listening | ready | processing | speaking | error
   const [state, setState] = useState("idle");
   const [messages, setMessages] = useState([]);
-  const holdingRef = useRef(false);
+  const [draftText, setDraftText] = useState("");
+
   const streamRef = useRef(null);
 
   const {
@@ -27,33 +28,46 @@ export default function VoiceUI() {
     error,
   } = useMicrophone();
 
-  /* ---------------- MESSAGE HELPERS ---------------- */
+  /* ---------------------------------------------------- */
+  /* MESSAGE HELPERS */
+  /* ---------------------------------------------------- */
 
-  const addRecordingBubble = () => {
+  const startUserMessage = () => {
     setMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
         role: "user",
-        text: "Listening…",
+        text: "",
         status: "recording",
       },
     ]);
   };
 
-  const finalizeUserBubble = () => {
+  const updateUserMessage = (text) => {
     setMessages((prev) => {
       const updated = [...prev];
       const last = updated[updated.length - 1];
-      if (last?.status === "recording") {
-        last.text = "User voice input…"; // later replace with transcript
-        last.status = "pending";
+      if (last?.role === "user" && last.status === "recording") {
+        last.text = text || "Listening…";
       }
       return updated;
     });
   };
 
-  const addAIPlaceholder = () => {
+  const finalizeUserMessage = () => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last?.role === "user" && last.status === "recording") {
+        last.text = draftText || "…";
+        last.status = "done";
+      }
+      return updated;
+    });
+  };
+
+  const addAIMessage = () => {
     setMessages((prev) => [
       ...prev,
       {
@@ -87,124 +101,132 @@ export default function VoiceUI() {
     });
   };
 
-  const pushErrorMessage = (msg) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        role: "assistant",
-        text: msg,
-        status: "error",
-      },
-    ]);
-  };
-
-  /* ---------------- MIC CONTROL ---------------- */
+  /* ---------------------------------------------------- */
+  /* MIC CONTROL */
+  /* ---------------------------------------------------- */
 
   const startListening = async () => {
     if (state !== "idle") return;
 
     try {
-      holdingRef.current = true;
-      addRecordingBubble();
+      setDraftText("");
+      startUserMessage();
       await startMic();
       setState("listening");
     } catch {
       setState("error");
-      pushErrorMessage("Microphone access failed.");
     }
   };
 
   const stopListening = async () => {
     if (state !== "listening") return;
 
-    holdingRef.current = false;
     stopMic();
-    finalizeUserBubble();
-    setState("ready"); // ⬅️ WAIT FOR ENTER
+    finalizeUserMessage();
+    setState("ready");
   };
 
-  /* ---------------- SEND TO AI (ENTER KEY) ---------------- */
+  /* ---------------------------------------------------- */
+  /* SEND TO AI */
+  /* ---------------------------------------------------- */
 
   const sendToAI = async () => {
     if (state !== "ready") return;
+    if (!draftText.trim()) return;
 
     setState("processing");
+    addAIMessage();
 
-    setTimeout(async () => {
-      setState("speaking");
-      addAIPlaceholder();
+    const chunks = [
+      "Hello! ",
+      "I’m Ora. ",
+      "I understand your input ",
+      "and respond naturally.",
+    ];
 
-      const chunks = [
-        "Hello! ",
-        "I’m Ora. ",
-        "I can understand your voice ",
-        "and respond naturally in real time.",
-      ];
+    let index = 0;
+    streamRef.current = setInterval(() => {
+      if (index < chunks.length) {
+        updateAIMessage(chunks[index]);
+        index++;
+      } else {
+        clearInterval(streamRef.current);
+      }
+    }, 350);
 
-      let index = 0;
-      streamRef.current = setInterval(() => {
-        if (index < chunks.length) {
-          updateAIMessage(chunks[index]);
-          index++;
-        } else {
-          clearInterval(streamRef.current);
-          finishAIMessage();
-        }
-      }, 350);
-
-      await playAudioStreamFromElevenLabs(
-        chunks.join(""),
-        () => setState("idle"),
-        () => {
-          setState("error");
-          pushErrorMessage("Audio playback failed.");
-        }
-      );
-    }, 600);
+    await playAudioStreamFromElevenLabs(
+      chunks.join(""),
+      () => {
+        finishAIMessage();
+        setDraftText("");
+        setState("idle");
+      },
+      () => setState("error")
+    );
   };
 
-  /* ---------------- KEYBOARD CONTROLS ---------------- */
+  /* ---------------------------------------------------- */
+  /* SINGLE KEYBOARD HANDLER (CRITICAL) */
+  /* ---------------------------------------------------- */
 
   useEffect(() => {
-    const keyDown = (e) => {
+    const onKeyDown = (e) => {
+      // Start recording
       if (e.code === "Space" && state === "idle") {
         e.preventDefault();
         startListening();
       }
 
-      if (e.code === "Enter" && state === "ready") {
+      // Typing while recording
+      if (state === "listening") {
+        if (e.key === "Backspace") {
+          setDraftText((t) => t.slice(0, -1));
+        } else if (
+          e.key.length === 1 &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          e.key !== "Enter"
+        ) {
+          setDraftText((t) => t + e.key);
+        }
+      }
+
+      // Send message
+      if (e.key === "Enter" && state === "ready") {
         e.preventDefault();
         sendToAI();
       }
     };
 
-    const keyUp = (e) => {
+    const onKeyUp = (e) => {
       if (e.code === "Space" && state === "listening") {
         e.preventDefault();
         stopListening();
       }
     };
 
-    window.addEventListener("keydown", keyDown);
-    window.addEventListener("keyup", keyUp);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 
     return () => {
-      window.removeEventListener("keydown", keyDown);
-      window.removeEventListener("keyup", keyUp);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
-  }, [state]);
+  }, [state, draftText]);
 
-  /* ---------------- INTERRUPT AI IF USER TALKS ---------------- */
+  /* ---------------------------------------------------- */
+  /* LIVE DRAFT → BUBBLE SYNC */
+  /* ---------------------------------------------------- */
 
   useEffect(() => {
     if (state === "listening") {
-      stopAudio();
-      if (streamRef.current) clearInterval(streamRef.current);
+      updateUserMessage(draftText);
     }
-  }, [state]);
+  }, [draftText, state]);
 
-  /* ---------------- CLEANUP ---------------- */
+  /* ---------------------------------------------------- */
+  /* CLEANUP */
+  /* ---------------------------------------------------- */
 
   useEffect(() => {
     return () => {
@@ -213,25 +235,24 @@ export default function VoiceUI() {
     };
   }, []);
 
-  /* ---------------- UI ---------------- */
+  /* ---------------------------------------------------- */
+  /* UI */
+  /* ---------------------------------------------------- */
 
   return (
-    <div className="flex flex-col items-center gap-10 w-full">
+    <div className="flex flex-col items-center gap-8 w-full">
 
       {sessionId && (
-        <p className="text-xs text-gray-600">
-          Session: {sessionId}
-        </p>
+        <p className="text-xs text-gray-600 py-10">Session: {sessionId}</p>
       )}
 
       {/* MIC */}
       <motion.div
         onPointerDown={startListening}
         onPointerUp={stopListening}
-        onPointerLeave={stopListening}
         whileTap={{ scale: 0.92 }}
         className="
-          relative w-36 h-36 rounded-full
+          w-36 h-36 rounded-full
           flex items-center justify-center
           bg-[#0F1115]
           border border-green-400/40
@@ -242,14 +263,7 @@ export default function VoiceUI() {
       </motion.div>
 
       {permission === "granted" && (
-        <p className="text-green-400 text-sm">
-          Microphone connected
-        </p>
-      )}
-      {error && (
-        <p className="text-red-400 text-sm">
-          {error}
-        </p>
+        <p className="text-green-400 text-sm pb-5">Microphone connected</p>
       )}
 
       {state !== "idle" && (
@@ -261,13 +275,26 @@ export default function VoiceUI() {
       )}
 
       <p className="text-gray-400">
-        {state === "idle" && "Hold Space or mic to talk"}
+        {state === "idle" && "Hold Space or tap mic"}
         {state === "listening" && "Recording…"}
-        {state === "ready" && "Press Enter to send"}
+        {state === "ready" && "Press Enter or Send"}
         {state === "processing" && "Processing…"}
         {state === "speaking" && "Ora is speaking…"}
-        {state === "error" && "Something went wrong"}
       </p>
+
+      {/* MOBILE SEND BUTTON */}
+      {state === "ready" && (
+        <button
+          onClick={sendToAI}
+          className="
+            md:hidden
+            px-6 py-3 rounded-full
+            bg-green-400 text-black font-semibold
+          "
+        >
+          Send
+        </button>
+      )}
 
       <Conversation messages={messages} />
     </div>

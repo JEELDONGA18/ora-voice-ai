@@ -6,7 +6,7 @@ export default function CTASection() {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-40 bg-[#0B0B0F] overflow-hidden">
+    <section className="relative py-40 bg-transparent overflow-hidden">
       
       {/* Ambient Glow */}
       <div className="pointer-events-none absolute inset-0 -z-10">

@@ -21,7 +21,7 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="relative py-40 bg-[#0B0B0F] overflow-hidden">
+    <section className="relative py-40 bg-transparent overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* Title */}
