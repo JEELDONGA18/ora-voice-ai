@@ -1,0 +1,48 @@
+#root{
+    margin: 0;
+    padding: 0;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+@keyframes spinSlow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spinSlow 18s linear infinite;
+}
+
+@keyframes featureGlow {
+    0% {
+        opacity: 0.25;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.55;
+        transform: scale(1.02);
+    }
+
+    100% {
+        opacity: 0.25;
+        transform: scale(1);
+    }
+}
+
+.animate-glow {
+    animation: featureGlow 3.5s ease-in-out infinite;
+}
