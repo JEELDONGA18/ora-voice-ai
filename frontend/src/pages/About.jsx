@@ -8,28 +8,28 @@ const team = [
     role: "UI / UX Engineer",
     image: "/team/jeel.jpeg",
     desc: "Designed Ora’s complete visual system, animations, and voice-first experience.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/jeel-hasmukhbhai-donga-226441290/",
   },
   {
     name: "Yash Dilkhush",
     role: "Backend / Cloud Engineer",
     image: "/team/yash.jpg",
     desc: "Handled APIs, sessions, and scalable cloud architecture.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/dilkhush-yash/",
   },
   {
     name: "Dhyey Desai",
     role: "AI / Prompt Engineer",
     image: "/team/dhyey.jpeg",
     desc: "Focused on conversational intelligence and prompt design.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/dhyey-desai-625256286/",
   },
   {
     name: "Dhrumil Khatiwala",
     role: "Voice & Audio Engineer",
     image: "/team/dhrumil.jpeg",
     desc: "Built microphone capture, waveform visualization, and audio streaming.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/dhrumil-khatiwala-4b55322b6/",
   },
 ];
 

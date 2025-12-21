@@ -3,7 +3,7 @@ import { Github, Mail, Info } from "lucide-react";
 
 export default function Footer() {
   const emailTo = "jeeldonga18@gmail.com";
-  const emailCC = "dhyeydesai2626@gmail.com,yashdilkhush96@gmail.com";
+  const emailCC = "dhyeydesai2626@gmail.com,yashdilkhush96@gmail.com,dhrumilkhatiwala@gmail.com";
   const subject = "Collaboration with Ora or Query about Ora";
   const body =
     "Hello there,%0D%0A%0D%0AI would like to connect regarding Ora.%0D%0A%0D%0ARegards,";
@@ -45,7 +45,7 @@ export default function Footer() {
 
             {/* GitHub */}
             <a
-              href="https://github.com/your-username/ora"
+              href="https://github.com/JEELDONGA18/ora-voice-ai"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-white transition"

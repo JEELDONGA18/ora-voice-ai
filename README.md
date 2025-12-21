@@ -1,95 +1,111 @@
 # 🎙️ Ora — Voice-First Conversational AI
 
-Ora is a **next-generation voice-driven AI experience** designed to feel **natural, interruptible, and human**.  
-Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to interact **entirely through speech**, combining real-time microphone input, intelligent reasoning, and expressive AI voice responses.
+Ora is a **voice-driven conversational AI interface** designed to feel **natural, interruptible, and human**.  
+Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to interact **entirely through speech**, combining real-time audio capture, intelligent reasoning, and expressive AI voice responses.
 
 ---
 
-## 🌐 Live Demo & Video
+## 🌐 Demo
 
-- 🔗 **Live Demo:** (add link here)
-- 📹 **Full Working Demo (1–2 min):** (add YouTube / Loom link here)
+- 🔗 **Live Demo:** (add link)
+- 🎥 **Full Working Demo (1–2 min):**  
+  `/public/demo/ora-demo.mp4`
 
 ---
 
-## ✨ Key Features
+## ✨ Core Features
 
 - 🎤 Push-to-Talk Voice Interaction (Mouse + Spacebar)
-- 🧠 Context-Aware Conversational AI
+- 🧠 Context-Aware AI Conversations
 - 🔊 Human-Like AI Voice (ElevenLabs)
-- 📊 Real-Time Waveform Visualization
-- 🔁 Interruptible Conversations
-- 🎨 Dark Minimal UI with Soft Green Accents
-- ⚡ Low-Latency, Session-Based Interaction
+- 📊 Real-Time Waveform Feedback
+- 🔁 Interruptible AI Responses
+- 🎨 Dark Minimal UI with Soft Green Theme
+- ⚡ Low-Latency Session-Based Flow
 
 ---
 
-## 🧭 Pages Overview
+## 🖥️ Pages Overview
 
-### 1️⃣ Landing Page
-A visually rich introduction to Ora.
+---
+
+### 🏠 Landing Page
+
+The landing page introduces Ora with **high-impact visuals and animations**.
 
 **Includes:**
 - Animated hero section
-- Feature cards with advanced animations
-- Carousel showcasing working UI videos
+- Feature cards with glow effects
+- Carousel showcasing real UI usage
 - Voice experience preview
-- Call-to-action section
-- Footer with contact & credits
+- CTA & footer
+
+📸 **Screenshots:**
+
+![Hero Section](public/images/landing/Hero_and_CTA_Section.png)
+![Features](public/images/landing/FeaturesSection.png)
+![Carousel](public/images/landing/carousel.png)
 
 ---
 
-### 2️⃣ Voice App (Working Page)
-The core experience of Ora.
+### 🎙️ Voice App (Working Page)
+
+This is the **core voice experience**.
 
 **Capabilities:**
 - Microphone permission handling
 - Push-to-talk interaction
-- Dynamic waveform animations per state
+- Dynamic waveform per system state
 - Live conversation bubbles (User ↔ AI)
-- Streaming AI responses
-- AI voice playback
-- Error handling & recovery
-- Session-aware conversation flow
+- Streaming AI text & voice
+- Error & interruption handling
+- Session-aware conversation
+
+📸 **Screenshots:**
+
+![Microphone](public/images/voice-app/mic.png)
+![Waveform](public/images/voice-app/waveform.png)
+![Conversation](public/images/voice-app/conversation.png)
 
 ---
 
-### 3️⃣ About Page
-A polished presentation of:
-- Team members & roles
-- Ora’s internal workflow
-- Technology acknowledgements
+### 👥 About Page
+
+The About page presents the **team, workflow, and credits** in a clean, professional manner.
+
+📸 **Screenshots:**
+
+![Team](public/images/about/Team.png)
+![Workflow](public/images/about/Workflow_of_Ora.png)
+![Credits](public/images/about/credit_Section.png)
 
 ---
 
-## 🔄 Workflow of Ora (System Flow)
+## 🔄 Workflow of Ora
 
-Ora follows a structured, real-time voice interaction workflow that begins with microphone permission validation, followed by continuous audio capture from the user’s device. The captured audio stream is analyzed in real time to detect speech activity and silence, after which valid speech segments are forwarded to the AI reasoning layer powered by Google Cloud Vertex AI / Gemini. The AI processes user intent within an active conversational session, preserving contextual continuity across interactions. Once a response is generated, it is passed to the voice synthesis layer using ElevenLabs, where speech is produced and streamed back to the client for immediate playback. Throughout this pipeline, Ora maintains explicit system states—Idle, Listening, Processing, Responding, and Error Handling—to ensure robust recovery from permission denials, network failures, or audio playback issues, enabling a seamless, low-latency, and fully voice-driven conversational experience.
+Ora follows a structured real-time voice interaction pipeline:
 
----
+1. User grants microphone access
+2. Audio is captured in real time
+3. Speech segments are detected
+4. AI reasoning via Google Cloud Vertex AI / Gemini
+5. Response is generated with context
+6. Voice synthesis via ElevenLabs
+7. Audio streamed back to the user
+8. System states manage errors & interruptions
 
-## 🎛️ System States
-
-| State | Description |
-|------|------------|
-| Idle | Waiting for user input |
-| Listening | Capturing microphone input |
-| Processing | AI reasoning in progress |
-| Speaking | AI voice playback |
-| Error | Permission, network, or audio failure |
-
-Each state is visually represented using **dynamic waveform animations**.
+This ensures a **low-latency, human-like conversational experience**.
 
 ---
 
 ## 🧑‍💻 Team
 
 | Name | Role |
-|-----|------|
-| **Jeel Donga** | UI / UX Engineer — Designed the complete visual system, animations, and voice-first UX |
-| **Yash Dilkhush** | Backend & Cloud Engineer — APIs, sessions, and scalable architecture |
-| **Dhyey Desai** | AI & Prompt Engineer — Conversational intelligence and prompt design |
-| **Dhrumil Khatiwala** | Voice & Audio Engineer — Microphone capture, waveform visualization, audio streaming |
+|----|----|
+| **Jeel Donga** | UI / UX Engineer — Visual system, animations, voice-first UX |
+| **Yash Dilkhush** | Backend & Cloud Engineer — APIs, sessions, architecture |
+| **Dhyey Desai** | AI & Prompt Engineer — Conversational intelligence |
+| **Dhrumil Khatiwala** | Voice & Audio Engineer — Mic capture, waveform, streaming |
 
 ---
 
@@ -102,8 +118,8 @@ Each state is visually represented using **dynamic waveform animations**.
 - React Router
 
 ### AI & Voice
-- **ElevenLabs** — AI Voice Synthesis
-- **Google Cloud Vertex AI / Gemini** — Conversational Intelligence
+- ElevenLabs — AI Voice Synthesis
+- Google Cloud Vertex AI / Gemini — AI Reasoning
 
 ### Browser APIs
 - Web Audio API
@@ -111,52 +127,25 @@ Each state is visually represented using **dynamic waveform animations**.
 
 ---
 
-## 📂 Project Structure (Simplified)
-frontend/
-│
-├── src/
-│ ├── components/
-│ │ ├── voice/
-│ │ ├── layout/
-│ │ └── sections/
-│ ├── pages/
-│ ├── hooks/
-│ ├── services/
-│ └── styles/
-│
-└── README.md
-
----
-
-## 🙏 Credits & Acknowledgements
+## 🙏 Credits
 
 We sincerely thank:
 
-- **Google Cloud Vertex AI / Gemini** — for powering intelligent, context-aware conversations
-- **ElevenLabs** — for providing expressive, human-like AI voice synthesis
+- **Google Cloud Vertex AI / Gemini**
+- **ElevenLabs**
 
-Their platforms made Ora’s natural voice experience possible.
-
----
-
-## 🚀 Future Enhancements
-
-- Live speech-to-text transcription
-- True streaming audio from ElevenLabs
-- Multi-language support
-- Mobile-optimized voice UX
-- Persistent session memory
+for enabling intelligent reasoning and human-like voice synthesis.
 
 ---
 
-## 📬 Contact & Collaboration
+## 📬 Contact
 
-📧 **Email:** jeeldonga18@gmail.com  
-📧 **CC:** dhyeydesai2626@gmail.com, yashdilkhush96@gmail.com  
-💬 **Subject:** Collaboration with Ora or Query about Ora
+📧 Email: jeeldonga18@gmail.com  
+📧 CC: dhyeydesai2626@gmail.com, yashdilkhush96@gmail.com, dhrumilkhatiwala@gmail.com 
+💬 Subject: *Collaboration with Ora or Query about Ora*
 
 ---
 
 ## ⭐ Final Note
 
-Ora is not just a demo — it is a **foundation for voice-first human–AI interaction**, designed with performance, UX, and realism in mind.
+Ora is not just a demo — it is a **foundation for future voice-first human–AI interaction**, built with a strong focus on UX, performance, and realism.
