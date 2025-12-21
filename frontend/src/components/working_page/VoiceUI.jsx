@@ -12,9 +12,8 @@ import {
 export default function VoiceUI() {
   const sessionId = useSession();
 
-  const [state, setState] = useState("idle"); 
-  // idle | listening | processing | speaking | error
-
+  // idle | listening | ready | processing | speaking | error
+  const [state, setState] = useState("idle");
   const [messages, setMessages] = useState([]);
   const holdingRef = useRef(false);
   const streamRef = useRef(null);
@@ -47,8 +46,8 @@ export default function VoiceUI() {
       const updated = [...prev];
       const last = updated[updated.length - 1];
       if (last?.status === "recording") {
-        last.text = "User voice input…"; // replace with transcript later
-        last.status = "done";
+        last.text = "User voice input…"; // later replace with transcript
+        last.status = "pending";
       }
       return updated;
     });
@@ -122,9 +121,16 @@ export default function VoiceUI() {
     holdingRef.current = false;
     stopMic();
     finalizeUserBubble();
+    setState("ready"); // ⬅️ WAIT FOR ENTER
+  };
+
+  /* ---------------- SEND TO AI (ENTER KEY) ---------------- */
+
+  const sendToAI = async () => {
+    if (state !== "ready") return;
+
     setState("processing");
 
-    // MOCK BACKEND + STREAMING AI
     setTimeout(async () => {
       setState("speaking");
       addAIPlaceholder();
@@ -155,32 +161,37 @@ export default function VoiceUI() {
           pushErrorMessage("Audio playback failed.");
         }
       );
-    }, 700);
+    }, 600);
   };
 
-  /* ---------------- SPACEBAR PUSH-TO-TALK ---------------- */
+  /* ---------------- KEYBOARD CONTROLS ---------------- */
 
   useEffect(() => {
-    const down = (e) => {
-      if (e.code === "Space" && !holdingRef.current) {
+    const keyDown = (e) => {
+      if (e.code === "Space" && state === "idle") {
         e.preventDefault();
         startListening();
       }
+
+      if (e.code === "Enter" && state === "ready") {
+        e.preventDefault();
+        sendToAI();
+      }
     };
 
-    const up = (e) => {
-      if (e.code === "Space") {
+    const keyUp = (e) => {
+      if (e.code === "Space" && state === "listening") {
         e.preventDefault();
         stopListening();
       }
     };
 
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
 
     return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
+      window.removeEventListener("keydown", keyDown);
+      window.removeEventListener("keyup", keyUp);
     };
   }, [state]);
 
@@ -189,20 +200,16 @@ export default function VoiceUI() {
   useEffect(() => {
     if (state === "listening") {
       stopAudio();
-      if (streamRef.current) {
-        clearInterval(streamRef.current);
-      }
+      if (streamRef.current) clearInterval(streamRef.current);
     }
   }, [state]);
 
-  /* ---------------- CLEANUP ON UNMOUNT ---------------- */
+  /* ---------------- CLEANUP ---------------- */
 
   useEffect(() => {
     return () => {
       stopAudio();
-      if (streamRef.current) {
-        clearInterval(streamRef.current);
-      }
+      if (streamRef.current) clearInterval(streamRef.current);
     };
   }, []);
 
@@ -211,14 +218,13 @@ export default function VoiceUI() {
   return (
     <div className="flex flex-col items-center gap-10 w-full">
 
-      {/* SESSION DEBUG */}
       {sessionId && (
         <p className="text-xs text-gray-600">
           Session: {sessionId}
         </p>
       )}
 
-      {/* MIC BUTTON */}
+      {/* MIC */}
       <motion.div
         onPointerDown={startListening}
         onPointerUp={stopListening}
@@ -235,7 +241,6 @@ export default function VoiceUI() {
         <span className="text-5xl">🎤</span>
       </motion.div>
 
-      {/* MIC STATUS */}
       {permission === "granted" && (
         <p className="text-green-400 text-sm">
           Microphone connected
@@ -247,7 +252,6 @@ export default function VoiceUI() {
         </p>
       )}
 
-      {/* WAVEFORM (ALL ACTIVE STATES) */}
       {state !== "idle" && (
         <Waveform
           mode={state}
@@ -256,18 +260,16 @@ export default function VoiceUI() {
         />
       )}
 
-      {/* STATE TEXT */}
       <p className="text-gray-400">
-        {state === "idle" && "Hold mic or Spacebar to talk"}
-        {state === "listening" && "Listening…"}
+        {state === "idle" && "Hold Space or mic to talk"}
+        {state === "listening" && "Recording…"}
+        {state === "ready" && "Press Enter to send"}
         {state === "processing" && "Processing…"}
         {state === "speaking" && "Ora is speaking…"}
         {state === "error" && "Something went wrong"}
       </p>
 
-      {/* CONVERSATION */}
       <Conversation messages={messages} />
-
     </div>
   );
 }
