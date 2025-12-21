@@ -8,7 +8,7 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 ## 🌐 Demo
 
 - 🔗 **Live Demo:** https://ora-voice-ai.vercel.app/
-- 🎥 **Full Working Demo (1–2 min):** *(Demo video available in `/public/demo/ora-demo.mp4` or will be uploaded separately)*
+- 🎥 **Full Working Demo (1–2 min):** *(Demo video available in `frontend/public/demo/ora-demo.mp4` or will be uploaded separately)*
 
 ---
 
@@ -41,9 +41,9 @@ The landing page introduces Ora with **high-impact visuals and smooth animations
 
 📸 **Screenshots:**
 
-![Hero Section](public/images/landing/Hero_and_CTA_Section.png)
-![Features](public/images/landing/FeaturesSection.png)
-![Carousel](public/images/landing/carousel.png)
+![Hero Section](frontend/public/images/landing/Hero_and_CTA_Section.png)
+![Features](frontend/public/images/landing/FeaturesSection.png)
+![Carousel](frontend/public/images/landing/carousel.png)
 
 ---
 
@@ -62,9 +62,9 @@ This is the **core voice-first experience** of Ora.
 
 📸 **Screenshots:**
 
-![Microphone](public/images/voice-app/mic.png)
-![Waveform](public/images/voice-app/waveform.png)
-![Conversation](public/images/voice-app/conversation.png)
+![Microphone](frontend/public/images/voice-app/mic.png)
+![Waveform](frontend/public/images/voice-app/waveform.png)
+![Conversation](frontend/public/images/voice-app/conversation.png)
 
 ---
 
@@ -74,9 +74,9 @@ The About page presents the **team, internal workflow, and technology credits** 
 
 📸 **Screenshots:**
 
-![Team](public/images/about/Team.png)
-![Workflow](public/images/about/Workflow_of_Ora.png)
-![Credits](public/images/about/credit_Section.png)
+![Team](frontend/public/images/about/Team.png)
+![Workflow](frontend/public/images/about/Workflow_of_Ora.png)
+![Credits](frontend/public/images/about/credit_Section.png)
 
 ---
 
@@ -94,6 +94,8 @@ Ora follows a structured, real-time voice interaction pipeline:
 8. System states manage interruptions and errors
 
 This architecture ensures a **low-latency, human-like conversational experience**.
+
+![Credits](frontend/public/workflow/Workflow_of_Ora.png)
 
 ---
 
