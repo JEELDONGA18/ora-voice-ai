@@ -4,15 +4,20 @@ import Waveform from "./Waveform";
 import Conversation from "./Conversation";
 import useMicrophone from "../../hooks/useMicrophone";
 import useSession from "../../hooks/useSession";
-import { playAudioStreamFromElevenLabs, stopAudio } from "../../services/audioService";
+import {
+  playAudioStreamFromElevenLabs,
+  stopAudio,
+} from "../../services/audioService";
 
 export default function VoiceUI() {
   const sessionId = useSession();
 
-  const [state, setState] = useState("idle"); // idle | listening | processing | speaking | error
-  const [messages, setMessages] = useState([]);
+  const [state, setState] = useState("idle"); 
+  // idle | listening | processing | speaking | error
 
+  const [messages, setMessages] = useState([]);
   const holdingRef = useRef(false);
+  const streamRef = useRef(null);
 
   const {
     startMic,
@@ -25,16 +30,28 @@ export default function VoiceUI() {
 
   /* ---------------- MESSAGE HELPERS ---------------- */
 
-  const addUserMessage = (text) => {
+  const addRecordingBubble = () => {
     setMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
         role: "user",
-        text,
-        status: "done",
+        text: "Listening…",
+        status: "recording",
       },
     ]);
+  };
+
+  const finalizeUserBubble = () => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last?.status === "recording") {
+        last.text = "User voice input…"; // replace with transcript later
+        last.status = "done";
+      }
+      return updated;
+    });
   };
 
   const addAIPlaceholder = () => {
@@ -53,8 +70,7 @@ export default function VoiceUI() {
     setMessages((prev) => {
       const updated = [...prev];
       const last = updated[updated.length - 1];
-
-      if (last && last.role === "assistant") {
+      if (last?.role === "assistant") {
         last.text += chunk;
       }
       return updated;
@@ -65,11 +81,23 @@ export default function VoiceUI() {
     setMessages((prev) => {
       const updated = [...prev];
       const last = updated[updated.length - 1];
-      if (last && last.role === "assistant") {
+      if (last?.role === "assistant") {
         last.status = "done";
       }
       return updated;
     });
+  };
+
+  const pushErrorMessage = (msg) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        role: "assistant",
+        text: msg,
+        status: "error",
+      },
+    ]);
   };
 
   /* ---------------- MIC CONTROL ---------------- */
@@ -79,10 +107,12 @@ export default function VoiceUI() {
 
     try {
       holdingRef.current = true;
+      addRecordingBubble();
       await startMic();
       setState("listening");
     } catch {
       setState("error");
+      pushErrorMessage("Microphone access failed.");
     }
   };
 
@@ -91,13 +121,10 @@ export default function VoiceUI() {
 
     holdingRef.current = false;
     stopMic();
-
-    // USER MESSAGE (replace later with real transcript)
-    addUserMessage("User voice input…");
-
+    finalizeUserBubble();
     setState("processing");
 
-    // MOCK BACKEND + STREAMING RESPONSE
+    // MOCK BACKEND + STREAMING AI
     setTimeout(async () => {
       setState("speaking");
       addAIPlaceholder();
@@ -110,20 +137,23 @@ export default function VoiceUI() {
       ];
 
       let index = 0;
-      const interval = setInterval(() => {
+      streamRef.current = setInterval(() => {
         if (index < chunks.length) {
           updateAIMessage(chunks[index]);
           index++;
         } else {
-          clearInterval(interval);
+          clearInterval(streamRef.current);
           finishAIMessage();
         }
       }, 350);
 
       await playAudioStreamFromElevenLabs(
-        "Hello! I’m Ora. I can understand your voice and respond naturally.",
+        chunks.join(""),
         () => setState("idle"),
-        () => setState("error")
+        () => {
+          setState("error");
+          pushErrorMessage("Audio playback failed.");
+        }
       );
     }, 700);
   };
@@ -131,26 +161,26 @@ export default function VoiceUI() {
   /* ---------------- SPACEBAR PUSH-TO-TALK ---------------- */
 
   useEffect(() => {
-    const keyDown = (e) => {
+    const down = (e) => {
       if (e.code === "Space" && !holdingRef.current) {
         e.preventDefault();
         startListening();
       }
     };
 
-    const keyUp = (e) => {
+    const up = (e) => {
       if (e.code === "Space") {
         e.preventDefault();
         stopListening();
       }
     };
 
-    window.addEventListener("keydown", keyDown);
-    window.addEventListener("keyup", keyUp);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
 
     return () => {
-      window.removeEventListener("keydown", keyDown);
-      window.removeEventListener("keyup", keyUp);
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
     };
   }, [state]);
 
@@ -159,8 +189,22 @@ export default function VoiceUI() {
   useEffect(() => {
     if (state === "listening") {
       stopAudio();
+      if (streamRef.current) {
+        clearInterval(streamRef.current);
+      }
     }
   }, [state]);
+
+  /* ---------------- CLEANUP ON UNMOUNT ---------------- */
+
+  useEffect(() => {
+    return () => {
+      stopAudio();
+      if (streamRef.current) {
+        clearInterval(streamRef.current);
+      }
+    };
+  }, []);
 
   /* ---------------- UI ---------------- */
 
@@ -203,8 +247,8 @@ export default function VoiceUI() {
         </p>
       )}
 
-      {/* WAVEFORM */}
-      {state === "idle" && (
+      {/* WAVEFORM (ALL ACTIVE STATES) */}
+      {state !== "idle" && (
         <Waveform
           mode={state}
           analyserRef={analyserRef}
@@ -218,6 +262,7 @@ export default function VoiceUI() {
         {state === "listening" && "Listening…"}
         {state === "processing" && "Processing…"}
         {state === "speaking" && "Ora is speaking…"}
+        {state === "error" && "Something went wrong"}
       </p>
 
       {/* CONVERSATION */}
