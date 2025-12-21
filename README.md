@@ -7,9 +7,8 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 
 ## 🌐 Demo
 
-- 🔗 **Live Demo:** (add link)
-- 🎥 **Full Working Demo (1–2 min):**  
-  `/public/demo/ora-demo.mp4`
+- 🔗 **Live Demo:** https://ora-voice-ai.vercel.app/
+- 🎥 **Full Working Demo (1–2 min):** *(Demo video available in `/public/demo/ora-demo.mp4` or will be uploaded separately)*
 
 ---
 
@@ -31,7 +30,7 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 
 ### 🏠 Landing Page
 
-The landing page introduces Ora with **high-impact visuals and animations**.
+The landing page introduces Ora with **high-impact visuals and smooth animations**.
 
 **Includes:**
 - Animated hero section
@@ -50,7 +49,7 @@ The landing page introduces Ora with **high-impact visuals and animations**.
 
 ### 🎙️ Voice App (Working Page)
 
-This is the **core voice experience**.
+This is the **core voice-first experience** of Ora.
 
 **Capabilities:**
 - Microphone permission handling
@@ -59,7 +58,7 @@ This is the **core voice experience**.
 - Live conversation bubbles (User ↔ AI)
 - Streaming AI text & voice
 - Error & interruption handling
-- Session-aware conversation
+- Session-aware conversation flow
 
 📸 **Screenshots:**
 
@@ -71,7 +70,7 @@ This is the **core voice experience**.
 
 ### 👥 About Page
 
-The About page presents the **team, workflow, and credits** in a clean, professional manner.
+The About page presents the **team, internal workflow, and technology credits** in a clean and professional layout.
 
 📸 **Screenshots:**
 
@@ -83,18 +82,18 @@ The About page presents the **team, workflow, and credits** in a clean, professi
 
 ## 🔄 Workflow of Ora
 
-Ora follows a structured real-time voice interaction pipeline:
+Ora follows a structured, real-time voice interaction pipeline:
 
 1. User grants microphone access
 2. Audio is captured in real time
 3. Speech segments are detected
 4. AI reasoning via Google Cloud Vertex AI / Gemini
-5. Response is generated with context
+5. Context-aware response generation
 6. Voice synthesis via ElevenLabs
 7. Audio streamed back to the user
-8. System states manage errors & interruptions
+8. System states manage interruptions and errors
 
-This ensures a **low-latency, human-like conversational experience**.
+This architecture ensures a **low-latency, human-like conversational experience**.
 
 ---
 
@@ -105,7 +104,7 @@ This ensures a **low-latency, human-like conversational experience**.
 | **Jeel Donga** | UI / UX Engineer — Visual system, animations, voice-first UX |
 | **Yash Dilkhush** | Backend & Cloud Engineer — APIs, sessions, architecture |
 | **Dhyey Desai** | AI & Prompt Engineer — Conversational intelligence |
-| **Dhrumil Khatiwala** | Voice & Audio Engineer — Mic capture, waveform, streaming |
+| **Dhrumil Khatiwala** | Voice & Audio Engineer — Mic capture, waveform, audio streaming |
 
 ---
 
@@ -119,7 +118,7 @@ This ensures a **low-latency, human-like conversational experience**.
 
 ### AI & Voice
 - ElevenLabs — AI Voice Synthesis
-- Google Cloud Vertex AI / Gemini — AI Reasoning
+- Google Cloud Vertex AI / Gemini — Conversational Intelligence
 
 ### Browser APIs
 - Web Audio API
@@ -127,22 +126,22 @@ This ensures a **low-latency, human-like conversational experience**.
 
 ---
 
-## 🙏 Credits
+## 🙏 Credits & Acknowledgements
 
 We sincerely thank:
 
 - **Google Cloud Vertex AI / Gemini**
 - **ElevenLabs**
 
-for enabling intelligent reasoning and human-like voice synthesis.
+for enabling intelligent reasoning and expressive, human-like voice synthesis.
 
 ---
 
 ## 📬 Contact
 
-📧 Email: jeeldonga18@gmail.com  
-📧 CC: dhyeydesai2626@gmail.com, yashdilkhush96@gmail.com, dhrumilkhatiwala@gmail.com 
-💬 Subject: *Collaboration with Ora or Query about Ora*
+📧 **Email:** jeeldonga18@gmail.com  
+📧 **CC:** dhyeydesai2626@gmail.com, yashdilkhush96@gmail.com, dhrumilkhatiwala@gmail.com  
+💬 **Subject:** *Collaboration with Ora or Query about Ora*
 
 ---
 
