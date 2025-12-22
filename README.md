@@ -75,7 +75,6 @@ The About page presents the **team, internal workflow, and technology credits** 
 📸 **Screenshots:**
 
 ![Team](frontend/public/images/about/Team.png)
-![Workflow](frontend/public/images/about/Workflow_of_Ora.png)
 ![Credits](frontend/public/images/about/credit_Section.png)
 
 ---
