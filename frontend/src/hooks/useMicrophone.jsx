@@ -89,6 +89,9 @@ export default function useMicrophone(onAudioChunk) {
       const AudioContext =
         window.AudioContext || window.webkitAudioContext;
       const audioContext = new AudioContext({ sampleRate: 16000 });
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
       audioContextRef.current = audioContext;
 
       const source = audioContext.createMediaStreamSource(stream);
@@ -116,7 +119,7 @@ export default function useMicrophone(onAudioChunk) {
           pcm16[i] = Math.max(-1, Math.min(1, input[i])) * 0x7fff;
         }
 
-        onAudioChunk?.(pcm16);
+        onAudioChunk?.(pcm16.buffer);
       };
 
       processorRef.current = processor;

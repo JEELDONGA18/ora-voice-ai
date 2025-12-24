@@ -1,302 +1,299 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import Waveform from "./Waveform";
-import Conversation from "./Conversation";
-import useMicrophone from "../../hooks/useMicrophone";
-import useSession from "../../hooks/useSession";
-import {
-  playAudioStreamFromElevenLabs,
-  stopAudio,
-} from "../../services/audioService";
+  import React, { useState, useEffect, useRef } from "react";
+  import { motion } from "framer-motion";
+  import Waveform from "./Waveform";
+  import Conversation from "./Conversation";
+  import useMicrophone from "../../hooks/useMicrophone";
+  import useSession from "../../hooks/useSession";
+  import {
+    startVoiceSession,
+    endAudioStream,
+    closeVoiceSession,
+    sendAudioChunk,
+    submitText,
+  } from "../../services/audioService";
 
-export default function VoiceUI() {
-  const sessionId = useSession();
+  export default function VoiceUI() {
+    const { sessionId } = useSession();
 
-  // idle | listening | ready | processing | speaking | error
-  const [state, setState] = useState("idle");
-  const [messages, setMessages] = useState([]);
-  const [draftText, setDraftText] = useState("");
+    const [state, setState] = useState("idle");
+    const [messages, setMessages] = useState([]);
 
-  const streamRef = useRef(null);
+    const audioContextRef = useRef(null);
+    const ttsChunksRef = useRef([]);
+    const isEditableRef = useRef(false);
 
-  const {
-    startMic,
-    stopMic,
-    analyserRef,
-    dataArrayRef,
-    permission,
-    error,
-  } = useMicrophone();
-
-  /* ---------------------------------------------------- */
-  /* MESSAGE HELPERS */
-  /* ---------------------------------------------------- */
-
-  const startUserMessage = () => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        role: "user",
-        text: "",
-        status: "recording",
-      },
-    ]);
-  };
-
-  const updateUserMessage = (text) => {
-    setMessages((prev) => {
-      const updated = [...prev];
-      const last = updated[updated.length - 1];
-      if (last?.role === "user" && last.status === "recording") {
-        last.text = text || "Listening…";
-      }
-      return updated;
+    const {
+      startMic,
+      stopMic,
+      analyserRef,
+      dataArrayRef,
+      permission,
+    } = useMicrophone((pcmBuffer) => {
+      sendAudioChunk(pcmBuffer);
     });
-  };
 
-  const finalizeUserMessage = () => {
-    setMessages((prev) => {
-      const updated = [...prev];
-      const last = updated[updated.length - 1];
-      if (last?.role === "user" && last.status === "recording") {
-        last.text = draftText || "…";
-        last.status = "done";
+    /* ---------------- Local Storage ---------------- */
+
+    useEffect(() => {
+      if (sessionId && messages.length) {
+        localStorage.setItem(
+          `conversation:${sessionId}`,
+          JSON.stringify(messages)
+        );
       }
-      return updated;
-    });
-  };
+    }, [messages, sessionId]);
 
-  const addAIMessage = () => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now() + 1,
-        role: "assistant",
-        text: "",
-        status: "streaming",
-      },
-    ]);
-  };
+    useEffect(() => {
+      if (!sessionId) return;
+      const saved = localStorage.getItem(`conversation:${sessionId}`);
+      if (saved) setMessages(JSON.parse(saved));
+    }, [sessionId]);
 
-  const updateAIMessage = (chunk) => {
-    setMessages((prev) => {
-      const updated = [...prev];
-      const last = updated[updated.length - 1];
-      if (last?.role === "assistant") {
-        last.text += chunk;
+    /* ---------------- TTS ---------------- */
+
+    const onTTSChunk = (chunk) => {
+      ttsChunksRef.current.push(chunk);
+    };
+
+    const playFinalTTS = async () => {
+      if (!ttsChunksRef.current.length) return;
+
+      audioContextRef.current ||= new AudioContext();
+
+      const total = ttsChunksRef.current.reduce(
+        (s, b) => s + b.byteLength,
+        0
+      );
+
+      const merged = new Uint8Array(total);
+      let offset = 0;
+
+      for (const c of ttsChunksRef.current) {
+        merged.set(new Uint8Array(c), offset);
+        offset += c.byteLength;
       }
-      return updated;
-    });
-  };
 
-  const finishAIMessage = () => {
-    setMessages((prev) => {
-      const updated = [...prev];
-      const last = updated[updated.length - 1];
-      if (last?.role === "assistant") {
-        last.status = "done";
-      }
-      return updated;
-    });
-  };
+      const buffer =
+        await audioContextRef.current.decodeAudioData(merged.buffer);
 
-  /* ---------------------------------------------------- */
-  /* MIC CONTROL */
-  /* ---------------------------------------------------- */
+      const src = audioContextRef.current.createBufferSource();
+      src.buffer = buffer;
+      src.connect(audioContextRef.current.destination);
+      src.start();
 
-  const startListening = async () => {
-    if (state !== "idle") return;
+      ttsChunksRef.current = [];
+      setState("speaking");
 
-    try {
-      setDraftText("");
-      startUserMessage();
+      src.onended = () => setState("idle");
+    };
+
+    /* ---------------- Messages ---------------- */
+
+    const startUserMessage = () => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), role: "user", text: "", status: "recording" },
+      ]);
+    };
+
+    const updateUserText = (text) => {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.role === "user") {
+          last.text = text;
+          last.status = "recording";
+        }
+        return updated;
+      });
+    };
+
+    const finalizeUserMessage = () => {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.role === "user") last.status = "done";
+        return updated;
+      });
+    };
+
+    const addAIMessage = () => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: "assistant", text: "", status: "streaming" },
+      ]);
+    };
+
+    const updateAIMessage = (text) => {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.role === "assistant") {
+          last.text = text;
+          last.status = "done";
+        }
+        return updated;
+      });
+    };
+
+    /* ---------------- Mic Control ---------------- */
+
+    const startListening = async () => {
+      if (state !== "idle" || !sessionId) return;
+
+      isEditableRef.current = false;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+
+        if (!last || last.role !== "user" || last.status === "done") {
+          return [
+            ...prev,
+            {
+              id: Date.now(),
+              role: "user",
+              text: "",
+              status: "recording",
+            },
+          ];
+        }
+
+        return prev; // reuse existing bubble
+      });
+
+      startVoiceSession({
+        sessionId,
+        onAudioChunk: onTTSChunk,
+        onTTSEnd: playFinalTTS,
+        onAIText: updateAIMessage,
+        onUserText: (text) => {
+          console.log("STT TEXT:", text);
+          updateUserText(text);
+          isEditableRef.current = true;
+        },
+      });
+
       await startMic();
       setState("listening");
-    } catch {
-      setState("error");
-    }
-  };
+    };
 
-  const stopListening = async () => {
-    if (state !== "listening") return;
+    const stopListening = () => {
+      if (state !== "listening") return;
+      console.log("🎯 SPACE RELEASED → STT");
+      stopMic();
+      endAudioStream();
+      setState("idle");
+      isEditableRef.current = true;
+    };
 
-    stopMic();
-    finalizeUserMessage();
-    setState("ready");
-  };
+    /* ---------------- Keyboard ---------------- */
 
-  /* ---------------------------------------------------- */
-  /* SEND TO AI */
-  /* ---------------------------------------------------- */
-
-  const sendToAI = async () => {
-    if (state !== "ready") return;
-    if (!draftText.trim()) return;
-
-    setState("processing");
-    addAIMessage();
-
-    const chunks = [
-      "Hello! ",
-      "I’m Ora. ",
-      "I understand your input ",
-      "and respond naturally.",
-    ];
-
-    let index = 0;
-    streamRef.current = setInterval(() => {
-      if (index < chunks.length) {
-        updateAIMessage(chunks[index]);
-        index++;
-      } else {
-        clearInterval(streamRef.current);
-      }
-    }, 350);
-
-    await playAudioStreamFromElevenLabs(
-      chunks.join(""),
-      () => {
-        finishAIMessage();
-        setDraftText("");
-        setState("idle");
-      },
-      () => setState("error")
-    );
-  };
-
-  /* ---------------------------------------------------- */
-  /* SINGLE KEYBOARD HANDLER (CRITICAL) */
-  /* ---------------------------------------------------- */
-
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      // Start recording
-      if (e.code === "Space" && state === "idle") {
-        e.preventDefault();
-        startListening();
-      }
-
-      // Typing while recording
-      if (state === "listening") {
-        if (e.key === "Backspace") {
-          setDraftText((t) => t.slice(0, -1));
-        } else if (
-          e.key.length === 1 &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          e.key !== "Enter"
-        ) {
-          setDraftText((t) => t + e.key);
+    useEffect(() => {
+      const onKeyDown = (e) => {
+        if (e.code === "Space" && state === "idle") {
+          e.preventDefault();
+          startListening();
+          return;
         }
-      }
 
-      // Send message
-      if (e.key === "Enter" && state === "ready") {
-        e.preventDefault();
-        sendToAI();
-      }
-    };
+        if (
+          e.key === "Backspace" &&
+          state === "idle" &&
+          isEditableRef.current
+        ) {
+          e.preventDefault();
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.role === "user") {
+              last.text = last.text.slice(0, -1);
+            }
+            return updated;
+          });
+          return;
+        }
 
-    const onKeyUp = (e) => {
-      if (e.code === "Space" && state === "listening") {
-        e.preventDefault();
-        stopListening();
-      }
-    };
+        if (
+          e.key === "Enter" &&
+          state === "idle" &&
+          isEditableRef.current
+        ) {
+          const last = messages[messages.length - 1];
+          // 🚫 block empty submit
+          if (!last || !last.text.trim()) {
+            return;
+          }
+          e.preventDefault();
+          finalizeUserMessage();
+          isEditableRef.current = false;
+          addAIMessage();
+          setState("processing");
+          submitText();
+        }
 
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+        if (e.key.length === 1) e.preventDefault();
+      };
 
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-    };
-  }, [state, draftText]);
+      const onKeyUp = (e) => {
+        if (e.code === "Space" && state === "listening") {
+          e.preventDefault();
+          stopListening();
+        }
+      };
 
-  /* ---------------------------------------------------- */
-  /* LIVE DRAFT → BUBBLE SYNC */
-  /* ---------------------------------------------------- */
+      window.addEventListener("keydown", onKeyDown);
+      window.addEventListener("keyup", onKeyUp);
+      return () => {
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+      };
+    }, [state, sessionId]);
 
-  useEffect(() => {
-    if (state === "listening") {
-      updateUserMessage(draftText);
-    }
-  }, [draftText, state]);
+    /* ---------------- Cleanup ---------------- */
 
-  /* ---------------------------------------------------- */
-  /* CLEANUP */
-  /* ---------------------------------------------------- */
+    useEffect(() => {
+      return () => {
+        closeVoiceSession();
+        audioContextRef.current?.close();
+      };
+    }, []);
 
-  useEffect(() => {
-    return () => {
-      stopAudio();
-      if (streamRef.current) clearInterval(streamRef.current);
-    };
-  }, []);
+    /* ---------------- UI ---------------- */
 
-  /* ---------------------------------------------------- */
-  /* UI */
-  /* ---------------------------------------------------- */
+    return (
+      <div className="flex flex-col items-center gap-8 w-full">
+        <p className="text-xs text-gray-600 py-10">
+          Session: {sessionId}
+        </p>
 
-  return (
-    <div className="flex flex-col items-center gap-8 w-full">
-
-      {sessionId && (
-        <p className="text-xs text-gray-600 py-10">Session: {sessionId}</p>
-      )}
-
-      {/* MIC */}
-      <motion.div
-        onPointerDown={startListening}
-        onPointerUp={stopListening}
-        whileTap={{ scale: 0.92 }}
-        className="
-          w-36 h-36 rounded-full
-          flex items-center justify-center
-          bg-[#0F1115]
-          border border-green-400/40
-          cursor-pointer
-        "
-      >
-        <span className="text-5xl">🎤</span>
-      </motion.div>
-
-      {permission === "granted" && (
-        <p className="text-green-400 text-sm pb-5">Microphone connected</p>
-      )}
-
-      {state !== "idle" && (
-        <Waveform
-          mode={state}
-          analyserRef={analyserRef}
-          dataArrayRef={dataArrayRef}
-        />
-      )}
-
-      <p className="text-gray-400">
-        {state === "idle" && "Hold Space or tap mic"}
-        {state === "listening" && "Recording…"}
-        {state === "ready" && "Press Enter or Send"}
-        {state === "processing" && "Processing…"}
-        {state === "speaking" && "Ora is speaking…"}
-      </p>
-
-      {/* MOBILE SEND BUTTON */}
-      {state === "ready" && (
-        <button
-          onClick={sendToAI}
-          className="
-            md:hidden
-            px-6 py-3 rounded-full
-            bg-green-400 text-black font-semibold
-          "
+        <motion.div
+          onPointerDown={startListening}
+          onPointerUp={stopListening}
+          whileTap={{ scale: 0.92 }}
+          className="w-36 h-36 rounded-full flex items-center justify-center bg-[#0F1115] border border-green-400/40 cursor-pointer"
         >
-          Send
-        </button>
-      )}
+          <span className="text-5xl">🎤</span>
+        </motion.div>
 
-      <Conversation messages={messages} />
-    </div>
-  );
-}
+        {permission === "granted" && (
+          <p className="text-green-400 text-sm">Microphone connected</p>
+        )}
+
+        {state !== "idle" && (
+          <Waveform
+            mode={state}
+            analyserRef={analyserRef}
+            dataArrayRef={dataArrayRef}
+          />
+        )}
+
+        <p className="text-gray-400">
+          {state === "idle" && "Hold Space to speak, Enter to send"}
+          {state === "listening" && "Recording…"}
+          {state === "processing" && "Processing…"}
+          {state === "speaking" && "Ora is speaking…"}
+        </p>
+
+        <Conversation messages={messages} />
+      </div>
+    );
+  }

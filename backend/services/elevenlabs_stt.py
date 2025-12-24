@@ -5,7 +5,7 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 def transcribe_audio(wav_bytes: bytes) -> str:
     url = "https://api.elevenlabs.io/v1/speech-to-text"
-    print("API KEY LOADED:", ELEVENLABS_API_KEY[:5])
+    # print("API KEY LOADED:", ELEVENLABS_API_KEY[:5])
 
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY
