@@ -1,19 +1,45 @@
 import os
-from google.cloud import aiplatform
-from services.memory import format_memory_for_prompt
+from dotenv import load_dotenv
+from pathlib import Path
+import google.generativeai as genai
 
-aiplatform.init(project=os.getenv("GCP_PROJECT"))
+# Load .env
+env_path = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(dotenv_path=env_path)
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY not found in .env")
+
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-pro",
+    system_instruction=(
+        "You are Ora, a calm and confident voice-based AI mentor. "
+        "Speak naturally and conversationally. "
+        "Do not use markdown, bullet points, or emojis. "
+        "Keep responses short and suitable for speech."
+    ),
+)
 
 def generate_response(history):
-    prompt = f"""
-You are Ora, a calm and confident voice-based AI mentor.
-Speak naturally, conversationally, and concisely.
-No lists, no markdown, no emojis.
+    """
+    history: list of dicts [{role: 'user'|'assistant', text: str}]
+    """
 
-Conversation so far:
-{format_memory_for_prompt(history)}
-"""
+    conversation = ""
+    for msg in history[-6:]:
+        conversation += f"{msg['role']}: {msg['text']}\n"
 
-    model = aiplatform.GenerativeModel("gemini-1.5-pro")
-    response = model.generate_content(prompt)
+    response = model.generate_content(
+        conversation,
+        generation_config={
+            "temperature": 0.6,
+            "max_output_tokens": 512,
+        }
+    )
+
     return response.text.strip()

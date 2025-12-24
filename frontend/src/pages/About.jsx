@@ -138,7 +138,7 @@ export default function About() {
             px-8 py-10 text-center
             shadow-[0_0_40px_rgba(74,222,128,0.12)]
           ">
-            <h2 className="text-3xl font-semibold mb-4">
+            <h2 className="text-3xl font-semibold mb-4 pl-2 pr-2">
               Credits & Acknowledgements
             </h2>
             <p className="text-gray-400">
