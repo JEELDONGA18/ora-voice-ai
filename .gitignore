@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .env
+backend/ora_backend_venv/
 dist
 dist-ssr
 *.local
