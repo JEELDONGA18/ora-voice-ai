@@ -19,28 +19,38 @@
 
 
 # GEMINI TESTING
-# from google import genai
+from google import genai
+from dotenv import load_dotenv
+from pathlib import Path
+import os
 
-# client = genai.Client(
-#     api_key="AIzaSyBuZwZleExDDesvAnHnBD-swrTGFGmvrBM"
-# )
+# FORCE load .env from backend folder
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
-# response = client.models.generate_content(
-#     model="gemini-2.5-flash",
-#     contents="Say hello and confirm the API is working"
-# )
+print("ENV PATH:", env_path)
+print("GEMINI_API_KEY:", os.getenv("GEMINI_API_KEY"))
 
-# print(response.text)
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Say hello and confirm the API is working"
+)
+
+print(response.text)
 
 # TTS TESTING
-from services.elevenlabs_tts import stream_tts
+# from services.elevenlabs_tts import stream_tts
 
-output_file = "tts_test.wav"
+# output_file = "tts_test.wav"
 
-text = "Hello. This is Ora speaking. ElevenLabs text to speech is working correctly."
+# text = "Hello. This is Ora speaking. ElevenLabs text to speech is working correctly."
 
-with open(output_file, "wb") as f:
-    for chunk in stream_tts(text):
-        f.write(chunk)
+# with open(output_file, "wb") as f:
+#     for chunk in stream_tts(text):
+#         f.write(chunk)
 
-print(f"TTS audio saved as {output_file}")
+# print(f"TTS audio saved as {output_file}")

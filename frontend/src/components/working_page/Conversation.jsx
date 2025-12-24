@@ -42,16 +42,12 @@ export default function Conversation({ messages = [] }) {
                 `}
               >
                 {/* MESSAGE TEXT */}
-                {msg.role === "user" && msg.status === "recording" ? (
-                  <span className="opacity-80 italic">
-                    {msg.text || "Listening…"}
-                  </span>
-                ) : msg.text?.length > 0 ? (
+                {msg.text && msg.text.trim().length > 0 ? (
                   msg.text
+                ) : msg.role === "user" && msg.status === "recording" ? (
+                  <span className="opacity-80 italic">Listening…</span>
                 ) : msg.status === "streaming" ? (
-                  <span className="opacity-50 italic">
-                    Ora is thinking…
-                  </span>
+                  <span className="opacity-50 italic">Ora is thinking…</span>
                 ) : null}
               </div>
             </motion.div>

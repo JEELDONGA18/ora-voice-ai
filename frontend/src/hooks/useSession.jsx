@@ -2,45 +2,27 @@ import { useEffect, useState } from "react";
 
 export default function useSession() {
   const [sessionId, setSessionId] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function initSession() {
-      try {
-        // Reuse existing session if present
-        const stored = localStorage.getItem("sessionId");
-        if (stored) {
-          setSessionId(stored);
-          setLoading(false);
-          return;
-        }
+    // Try to restore session
+    let id = sessionStorage.getItem("ora_session_id");
 
-        // Create new session on backend
-        const res = await fetch("/api/session", {
-          method: "POST",
-        });
-
-        const data = await res.json();
-        localStorage.setItem("sessionId", data.sessionId);
-        setSessionId(data.sessionId);
-      } catch (err) {
-        console.error("Session init failed", err);
-      } finally {
-        setLoading(false);
-      }
+    if (!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem("ora_session_id", id);
     }
 
-    initSession();
+    setSessionId(id);
   }, []);
 
-  const resetSession = async () => {
-    localStorage.removeItem("sessionId");
-    setSessionId(null);
+  const resetSession = () => {
+    const id = crypto.randomUUID();
+    sessionStorage.setItem("ora_session_id", id);
+    setSessionId(id);
   };
 
   return {
     sessionId,
-    loading,
     resetSession,
   };
 }

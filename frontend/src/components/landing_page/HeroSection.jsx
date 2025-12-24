@@ -1,9 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+const FULL_FORM = "Oral Responsive Assistant";
+
 export default function HeroSection() {
   const navigate = useNavigate();
+  const [text, setText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [index, setIndex] = useState(0);
+
+  /* TYPEWRITER EFFECT */
+  useEffect(() => {
+    const speed = isDeleting ? 40 : 70;
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting && index < FULL_FORM.length) {
+        setText(FULL_FORM.slice(0, index + 1));
+        setIndex(index + 1);
+      } 
+      else if (isDeleting && index > 0) {
+        setText(FULL_FORM.slice(0, index - 1));
+        setIndex(index - 1);
+      } 
+      else if (!isDeleting && index === FULL_FORM.length) {
+        setTimeout(() => setIsDeleting(true), 1200);
+      } 
+      else if (isDeleting && index === 0) {
+        setIsDeleting(false);
+      }
+    }, speed);
+
+    return () => clearTimeout(timeout);
+  }, [index, isDeleting]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-[#0B0B0F] overflow-hidden">
@@ -51,14 +80,25 @@ export default function HeroSection() {
           <span className="text-green-400">Ora</span>
         </motion.h1>
 
+        {/* TYPEWRITER FULL FORM */}
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.2, duration: 0.8 }}
+          className="text-green-400 text-2xl mb-8 md:text-xl tracking-wide h-8 ">
+          {text}
+          <span className="animate-pulse">|</span>
+        </motion.p>
+
         {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.4, duration: 0.8 }}
-          className="max-w-xl mx-auto text-lg md:text-xl text-gray-400 mb-12"
+          className="max-w-xl mx-auto text-lg md:text-xl text-gray-400 pt-6 mb-12"
         >
-          A calm, voice-first AI that listens and responds naturally.
+          A calm, voice-first AI designed for natural,
+          interruptible, human conversation.
         </motion.p>
 
         {/* CTA */}
