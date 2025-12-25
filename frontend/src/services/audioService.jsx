@@ -1,30 +1,87 @@
 // services/audioService.js
 
-let audio = null;
+import { WS_BASE_URL } from "./apiService";
 
-export async function playAudioStreamFromElevenLabs(text, onEnd, onError) {
-  try {
-    audio = new Audio();
+let ws = null;
 
-    const response = await fetch("/api/voice", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
+/**
+ * Start a voice session with backend
+ */
+export function startVoiceSession({ sessionId, onAudioChunk, onTTSEnd, onAIText, onUserText}) {
+  ws = new WebSocket(`${WS_BASE_URL}/api/voice/${sessionId}`);
+  ws.binaryType = "arraybuffer";
 
-    const blob = await response.blob();
-    audio.src = URL.createObjectURL(blob);
-    audio.play();
+  ws.onopen = () => {
+    console.log("🎤 WebSocket connected");
+  };
 
-    audio.onended = onEnd;
-  } catch (err) {
-    onError?.(err);
+  ws.onmessage = (event) => {
+    // 🔊 Binary audio
+    if (event.data instanceof ArrayBuffer) {
+      onAudioChunk?.(event.data);
+      return;
+    }
+
+    // 📩 JSON message
+    const data = JSON.parse(event.data);
+
+    if (data.type === "user_text") {
+      onUserText?.(data.text);
+    }
+    
+    if (data.type === "ai_text") {
+      onAIText?.(data.text);
+    }
+    
+    if (data.type === "tts_end") {
+      onTTSEnd?.();
+    }
+
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket error", err);
+  };
+
+  ws.onclose = () => {
+    console.log("WebSocket closed");
+  };
+}
+
+/**
+ * Send microphone PCM chunk
+ */
+export function sendAudioChunk(pcmChunk) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(pcmChunk); // raw ArrayBuffer
   }
 }
 
-export function stopAudio() {
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
+/**
+ * Submit text after enter press
+ */
+export function submitText() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "submit" }));
+  }
+}
+
+
+/**
+ * Signal end of microphone audio
+ */
+export function endAudioStream() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "audio_end" }));
+  }
+}
+
+/**
+ * Close session completely
+ */
+export function closeVoiceSession() {
+  if (ws) {
+    ws.close();
+    ws = null;
   }
 }
