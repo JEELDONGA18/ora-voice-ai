@@ -1,16 +1,28 @@
 import { useEffect, useState } from "react";
 
-function generateSessionId() {
-  return crypto.randomUUID();
-}
-
 export default function useSession() {
   const [sessionId, setSessionId] = useState(null);
 
   useEffect(() => {
-    const id = generateSessionId();
+    // Try to restore session
+    let id = sessionStorage.getItem("ora_session_id");
+
+    if (!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem("ora_session_id", id);
+    }
+
     setSessionId(id);
   }, []);
 
-  return sessionId;
+  const resetSession = () => {
+    const id = crypto.randomUUID();
+    sessionStorage.setItem("ora_session_id", id);
+    setSessionId(id);
+  };
+
+  return {
+    sessionId,
+    resetSession,
+  };
 }
