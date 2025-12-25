@@ -10,9 +10,9 @@ load_dotenv(dotenv_path=env_path)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 
-print("ENV PATH:", env_path)
-print("ELEVENLABS_API_KEY:", os.getenv("ELEVENLABS_API_KEY"))
-print("ELEVENLABS_VOICE_ID:", os.getenv("ELEVENLABS_VOICE_ID"))
+# print("ENV PATH:", env_path)
+# print("ELEVENLABS_API_KEY:", os.getenv("ELEVENLABS_API_KEY"))
+# print("ELEVENLABS_VOICE_ID:", os.getenv("ELEVENLABS_VOICE_ID"))
 
 if not ELEVENLABS_API_KEY:
     raise RuntimeError("ELEVENLABS_API_KEY not set")
