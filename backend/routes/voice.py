@@ -1,90 +1,5 @@
-# from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-# import json
-
-# from services.elevenlabs_stt import transcribe_audio
-# from services.gemini import generate_response
-# from services.elevenlabs_tts import stream_tts
-# from services.memory import get_session_memory, save_message
-# from utils.audio import pcm_chunks_to_wav
-
-# router = APIRouter()
-
-# @router.websocket("/voice/{session_id}")
-# async def voice_ws(ws: WebSocket, session_id: str):
-#     await ws.accept()
-
-#     audio_chunks: list[bytes] = []
-
-#     try:
-#         while True:
-#             message = await ws.receive()
-
-#             # 🔌 Client disconnected
-#             if message["type"] == "websocket.disconnect":
-#                 print("🔌 websocket disconnect")
-#                 break
-
-#             # 🎧 Binary PCM audio
-#             if "bytes" in message and message["bytes"] is not None:
-#                 audio_chunks.append(message["bytes"])
-#                 continue
-
-#             # 📩 JSON control message
-#             if "text" in message and message["text"] is not None:
-#                 data = json.loads(message["text"])
-
-#                 if data.get("type") == "audio_end":
-#                     print("🛑 audio_end received")
-#                     break
-
-#     except WebSocketDisconnect:
-#         print("🔌 client disconnected (exception)")
-#         return
-
-#     # -------------------------------
-#     # 🔊 AUDIO → TEXT (STT)
-#     # -------------------------------
-#     if not audio_chunks:
-#         print("⚠️ no audio received")
-#         await ws.close()
-#         return
-
-#     print(f"🔊 received {len(audio_chunks)} chunks")
-
-#     wav_bytes = pcm_chunks_to_wav(audio_chunks)
-#     user_text = transcribe_audio(wav_bytes)
-
-#     save_message(session_id, "user", user_text)
-
-#     await ws.send_json({
-#         "type": "user_text",
-#         "text": user_text
-#     })
-
-#     # -------------------------------
-#     # 🤖 GEMINI
-#     # -------------------------------
-#     history = get_session_memory(session_id)
-#     ai_text = generate_response(history)
-
-#     save_message(session_id, "assistant", ai_text)
-
-#     await ws.send_json({
-#         "type": "ai_text",
-#         "text": ai_text
-#     })
-
-#     # -------------------------------
-#     # 🔊 STREAM TTS BACK
-#     # -------------------------------
-#     for chunk in stream_tts(ai_text):
-#         await ws.send_bytes(chunk)
-
-#     await ws.send_json({ "type": "tts_end" })
-#     await ws.close()
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-import json
+import json, os
 
 from services.elevenlabs_stt import transcribe_audio
 from services.gemini import generate_response
@@ -102,6 +17,8 @@ async def voice_ws(ws: WebSocket, session_id: str):
 
     try:
         while True:
+            print("ELEVENLABS_API_KEY loaded:", bool(os.getenv("ELEVENLABS_API_KEY")))
+            
             message = await ws.receive()
 
             # 🔌 client disconnected
