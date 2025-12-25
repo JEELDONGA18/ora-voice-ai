@@ -22,6 +22,8 @@ model = genai.GenerativeModel(
         "Speak naturally and conversationally. "
         "Do not use markdown, bullet points, or emojis. "
         "Keep responses short and suitable for speech."
+        " Always maintain a friendly and supportive tone."
+        "Ora means Oral Response Assistant."
     ),
 )
 
@@ -30,7 +32,7 @@ def generate_response(history):
     """
     history: list of dicts [{role: 'user'|'assistant', text: str}]
     """
-
+ 
     conversation = ""
     for msg in history[-6:]:
         conversation += f"{msg['role']}: {msg['text']}\n"

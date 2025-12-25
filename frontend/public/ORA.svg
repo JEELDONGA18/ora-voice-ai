@@ -1,0 +1,13 @@
+<svg width="360" height="360" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Glow -->
+  <circle cx="90" cy="90" r="70" stroke="#3AFF8C" stroke-width="2" opacity="0.35"></circle>
+  <circle cx="90" cy="90" r="75" stroke="#3AFF8C" stroke-width="20" opacity="0.05"></circle>
+
+  <!-- Main Circle -->
+  <circle cx="90" cy="90" r="58" fill="#0F1115" stroke="#3AFF8C" stroke-width="1.5"></circle>
+
+  <!-- Microphone -->
+  <path d="M90 58C83.9 58 79 62.9 79 69V91C79 97.1 83.9 102 90 102C96.1 102 101 97.1 101 91V69C101 62.9 96.1 58 90 58Z" fill="#E5E7EB"></path>
+
+  <path d="M74 91C74 101.5 81.5 110.2 90 112V122H83C81.9 122 81 122.9 81 124C81 125.1 81.9 126 83 126H97C98.1 126 99 125.1 99 124C99 122.9 98.1 122 97 122H90V112C98.5 110.2 106 101.5 106 91" stroke="#E5E7EB" stroke-width="4" stroke-linecap="round"></path>
+</svg>
