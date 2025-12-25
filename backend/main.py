@@ -21,4 +21,4 @@ app.include_router(voice_router, prefix="/api")
 
 @app.get("/")
 def health():
-    return {"status": "ok"}
+    return {"status": "ORA Voice AI Backend is running"}
