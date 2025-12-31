@@ -1,9 +1,13 @@
 import { WS_BASE_URL } from "./apiService";
 
 let ws = null;
+let heartbeatTimer = null;
+let lastConfig = null;
 
 /**
  * Start voice session (ONE per session)
+ * - Keeps socket alive on Render
+ * - Auto-reconnects if dropped
  */
 export function startVoiceSession({
   sessionId,
@@ -11,6 +15,9 @@ export function startVoiceSession({
   onTTSEnd,
   onAIText,
 }) {
+  // Save config for auto-reconnect
+  lastConfig = { sessionId, onAudioChunk, onTTSEnd, onAIText };
+
   // ✅ prevent duplicate connections
   if (ws && ws.readyState === WebSocket.OPEN) {
     return;
@@ -21,14 +28,23 @@ export function startVoiceSession({
 
   ws.onopen = () => {
     console.log("🎤 WebSocket connected");
+
+    // ✅ HEARTBEAT (Render kills idle sockets)
+    heartbeatTimer = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 20000); // every 20s
   };
 
   ws.onmessage = (event) => {
+    // 🔊 Binary TTS audio
     if (event.data instanceof ArrayBuffer) {
       onAudioChunk?.(event.data);
       return;
     }
 
+    // 📩 JSON message
     const data = JSON.parse(event.data);
 
     if (data.type === "ai_text") {
@@ -42,11 +58,22 @@ export function startVoiceSession({
 
   ws.onerror = (err) => {
     console.error("WebSocket error", err);
+    ws?.close();
   };
 
   ws.onclose = () => {
     console.log("🔒 WebSocket closed");
+
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
     ws = null;
+
+    // ✅ AUTO-RECONNECT (Render / network hiccups)
+    if (lastConfig) {
+      setTimeout(() => {
+        startVoiceSession(lastConfig);
+      }, 1000);
+    }
   };
 }
 
@@ -65,7 +92,7 @@ export function sendUserText(text) {
 }
 
 /**
- * Submit final text
+ * Submit final text (Enter key)
  */
 export function submitText() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -74,11 +101,18 @@ export function submitText() {
 }
 
 /**
- * Close session
+ * Close session completely
  */
 export function closeVoiceSession() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+
   if (ws) {
     ws.close();
     ws = null;
   }
+
+  lastConfig = null;
 }

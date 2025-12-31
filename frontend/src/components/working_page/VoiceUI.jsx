@@ -59,6 +59,14 @@ export default function VoiceUI() {
     return () => window.removeEventListener("pointerdown", unlock);
   }, []);
 
+  const unlockAudio = async () => {
+    audioContextRef.current ||= new AudioContext();
+    if (audioContextRef.current.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+  };
+
+
   /* ---------------- Web Speech API ---------------- */
 
   const startSpeechRecognition = () => {
@@ -116,6 +124,7 @@ export default function VoiceUI() {
   };
 
   const playFinalTTS = async () => {
+    await unlockAudio();
     if (!ttsChunksRef.current.length) return;
 
     audioContextRef.current ||= new AudioContext();
@@ -234,6 +243,7 @@ export default function VoiceUI() {
       if (e.code === "Space" && state === "idle") {
         if (!hasUserInteractedRef.current) return;
         e.preventDefault();
+        unlockAudio();
         startListening();
         return;
       }
@@ -243,6 +253,7 @@ export default function VoiceUI() {
         if (!last?.text.trim()) return;
 
         e.preventDefault();
+        ttsChunksRef.current = [];
         finalizeUserMessage();
         isEditableRef.current = false;
         addAIMessage();
@@ -292,8 +303,9 @@ export default function VoiceUI() {
       <p className="text-xs text-gray-600 py-10">Session: {sessionId}</p>
 
       <motion.div
-        onClick={() => {
+        onClick={async () => {
           hasUserInteractedRef.current = true;
+          await unlockAudio();
           if (state === "idle") startListening();
           else stopListening();
         }}
