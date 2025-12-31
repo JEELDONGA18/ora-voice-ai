@@ -47,12 +47,20 @@ export function startVoiceSession({
     // 📩 JSON message
     const data = JSON.parse(event.data);
 
+    // ✅ RENDER HANDSHAKE (NEW)
+    if (data.type === "server_ready") {
+      console.log("✅ Server ready (WS handshake complete)");
+      return;
+    }
+
     if (data.type === "ai_text") {
       onAIText?.(data.text);
+      return;
     }
 
     if (data.type === "tts_end") {
       onTTSEnd?.();
+      return;
     }
   };
 

@@ -11,11 +11,13 @@ router = APIRouter()
 @router.websocket("/voice/{session_id}")
 async def voice_ws(ws: WebSocket, session_id: str):
     await ws.accept()
+    await ws.send_json({ "type": "server_ready" })
+    print(f"ws ready")
 
     try:
         while True:
             try:
-                message = await asyncio.wait_for(ws.receive(), timeout=30)
+                message = await asyncio.wait_for(ws.receive(), timeout=10)
             except asyncio.TimeoutError:
                 # keep-alive so Render does not close socket
                 await ws.send_json({"type": "ping"})
