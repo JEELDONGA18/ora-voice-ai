@@ -95,9 +95,21 @@ export function sendUserText(text) {
  * Submit final text (Enter key)
  */
 export function submitText() {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "submit" }));
+    return;
+  }
 
-  ws.send(JSON.stringify({ type: "submit" }));
+  // 🧠 wait for socket to open
+  const waitAndSubmit = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "submit" }));
+      clearInterval(waitAndSubmit);
+    }
+  }, 50);
+
+  // safety timeout
+  setTimeout(() => clearInterval(waitAndSubmit), 3000);
 }
 
 /**

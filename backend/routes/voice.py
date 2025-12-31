@@ -15,17 +15,22 @@ async def voice_ws(ws: WebSocket, session_id: str):
     try:
         while True:
             try:
-                # ✅ Prevent infinite blocking (Render-safe)
-                message = await asyncio.wait_for(ws.receive(), timeout=60)
+                message = await asyncio.wait_for(ws.receive(), timeout=30)
             except asyncio.TimeoutError:
-                # keep socket alive
-                await ws.send_json({ "type": "ping" })
+                # keep-alive so Render does not close socket
+                await ws.send_json({"type": "ping"})
                 continue
 
+            # client disconnected
             if message["type"] == "websocket.disconnect":
                 break
 
-            if "text" not in message or message["text"] is None:
+            # 🔊 ignore binary frames safely
+            if message.get("bytes") is not None:
+                continue
+
+            # must be text frame
+            if message.get("text") is None:
                 continue
 
             data = json.loads(message["text"])
@@ -43,37 +48,37 @@ async def voice_ws(ws: WebSocket, session_id: str):
 
             # ⏎ final submit
             if data.get("type") == "submit":
+                print("✅ SUBMIT RECEIVED")
                 history = get_session_memory(session_id)
+
                 if not history:
                     await ws.send_json({
                         "type": "ai_text",
                         "text": "I didn’t catch that. Could you say it again?"
                     })
-                    await ws.send_json({ "type": "tts_end" })
+                    await ws.send_json({"type": "tts_end"})
                     continue
 
                 ai_text = generate_response(history).strip()
                 if not ai_text:
-                    ai_text = "I’m here. Could you rephrase that?"
+                    ai_text = "I’m here. Please try again."
 
                 save_message(session_id, "assistant", ai_text)
 
-                # 🧠 Send text first
+                # send text first
                 await ws.send_json({
                     "type": "ai_text",
                     "text": ai_text
                 })
 
-                # 🔊 Stream TTS
+                # stream audio
                 for chunk in stream_tts(ai_text):
                     await ws.send_bytes(chunk)
 
-                await ws.send_json({ "type": "tts_end" })
+                await ws.send_json({"type": "tts_end"})
 
     except WebSocketDisconnect:
-        # Normal client disconnect
         pass
 
     except Exception as e:
-        # Log unexpected errors (DO NOT close socket manually)
         print("WebSocket error:", e)
