@@ -33,6 +33,22 @@ export default function VoiceUI() {
     permission,
   } = useMicrophone();
 
+  const primeAudio = async () => {
+    audioContextRef.current ||= new AudioContext();
+    await audioContextRef.current.resume();
+
+    // 🔑 Play a silent buffer ON USER GESTURE
+    const buffer = audioContextRef.current.createBuffer(
+      1,
+      1,
+      audioContextRef.current.sampleRate
+    );
+    const src = audioContextRef.current.createBufferSource();
+    src.buffer = buffer;
+    src.connect(audioContextRef.current.destination);
+    src.start();
+  };
+
   useEffect(() => {
     if (!sessionId) return;
 
@@ -254,7 +270,7 @@ export default function VoiceUI() {
       if (e.code === "Space" && state === "idle") {
         if (!hasUserInteractedRef.current) return;
         e.preventDefault();
-        unlockAudio();
+        primeAudio();
         startListening();
         return;
       }
@@ -316,7 +332,7 @@ export default function VoiceUI() {
       <motion.div
         onClick={async () => {
           hasUserInteractedRef.current = true;
-          await unlockAudio();
+          await primeAudio();
           if (state === "idle") startListening();
           else stopListening();
         }}
