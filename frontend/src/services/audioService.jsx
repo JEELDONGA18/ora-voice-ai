@@ -57,11 +57,6 @@ export function startVoiceSession({
       onAIText?.(data.text);
       return;
     }
-
-    if (data.type === "tts_end") {
-      onTTSEnd?.();
-      return;
-    }
   };
 
   ws.onerror = (err) => {
