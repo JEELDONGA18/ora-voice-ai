@@ -1,9 +1,8 @@
 import { useRef, useState } from "react";
 
-export default function useMicrophone(onAudioChunk) {
+export default function useMicrophone() {
   const streamRef = useRef(null);
   const audioContextRef = useRef(null);
-  const processorRef = useRef(null);
 
   const analyserRef = useRef(null);
   const dataArrayRef = useRef(null);
@@ -19,41 +18,26 @@ export default function useMicrophone(onAudioChunk) {
 
       const AudioContext =
         window.AudioContext || window.webkitAudioContext;
-      const audioContext = new AudioContext({ sampleRate: 16000 });
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+
       if (audioContext.state === "suspended") {
         await audioContext.resume();
       }
-      audioContextRef.current = audioContext;
 
       const source = audioContext.createMediaStreamSource(stream);
 
-      // Analyser (UI)
+      // 🔊 ANALYSER (UI ONLY)
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
+
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
+
       source.connect(analyser);
 
       analyserRef.current = analyser;
       dataArrayRef.current = dataArray;
-
-      // Audio processor (REAL AUDIO)
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
-      source.connect(processor);
-      processor.connect(audioContext.destination);
-
-      processor.onaudioprocess = (event) => {
-        const input = event.inputBuffer.getChannelData(0);
-        const pcm16 = new Int16Array(input.length);
-
-        for (let i = 0; i < input.length; i++) {
-          pcm16[i] = Math.max(-1, Math.min(1, input[i])) * 0x7fff;
-        }
-
-        onAudioChunk?.(pcm16.buffer);
-      };
-
-      processorRef.current = processor;
 
       return { analyser, dataArray };
     } catch (err) {
@@ -68,13 +52,13 @@ export default function useMicrophone(onAudioChunk) {
   };
 
   const stopMic = () => {
-    processorRef.current?.disconnect();
     streamRef.current?.getTracks().forEach((t) => t.stop());
     audioContextRef.current?.close();
 
-    processorRef.current = null;
     streamRef.current = null;
     audioContextRef.current = null;
+    analyserRef.current = null;
+    dataArrayRef.current = null;
   };
 
   return {

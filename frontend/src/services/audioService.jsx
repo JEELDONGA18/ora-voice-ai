@@ -1,13 +1,21 @@
-// services/audioService.js
-
 import { WS_BASE_URL } from "./apiService";
 
 let ws = null;
 
 /**
- * Start a voice session with backend
+ * Start voice session (ONE per session)
  */
-export function startVoiceSession({ sessionId, onAudioChunk, onTTSEnd, onAIText, onUserText}) {
+export function startVoiceSession({
+  sessionId,
+  onAudioChunk,
+  onTTSEnd,
+  onAIText,
+}) {
+  // ✅ prevent duplicate connections
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    return;
+  }
+
   ws = new WebSocket(`${WS_BASE_URL}/api/voice/${sessionId}`);
   ws.binaryType = "arraybuffer";
 
@@ -16,27 +24,20 @@ export function startVoiceSession({ sessionId, onAudioChunk, onTTSEnd, onAIText,
   };
 
   ws.onmessage = (event) => {
-    // 🔊 Binary audio
     if (event.data instanceof ArrayBuffer) {
       onAudioChunk?.(event.data);
       return;
     }
 
-    // 📩 JSON message
     const data = JSON.parse(event.data);
 
-    if (data.type === "user_text") {
-      onUserText?.(data.text);
-    }
-    
     if (data.type === "ai_text") {
       onAIText?.(data.text);
     }
-    
+
     if (data.type === "tts_end") {
       onTTSEnd?.();
     }
-
   };
 
   ws.onerror = (err) => {
@@ -44,40 +45,36 @@ export function startVoiceSession({ sessionId, onAudioChunk, onTTSEnd, onAIText,
   };
 
   ws.onclose = () => {
-    console.log("WebSocket closed");
+    console.log("🔒 WebSocket closed");
+    ws = null;
   };
 }
 
 /**
- * Send microphone PCM chunk
+ * Send incremental user text
  */
-export function sendAudioChunk(pcmChunk) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(pcmChunk); // raw ArrayBuffer
-  }
+export function sendUserText(text) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+  ws.send(
+    JSON.stringify({
+      type: "user_text",
+      text,
+    })
+  );
 }
 
 /**
- * Submit text after enter press
+ * Submit final text
  */
 export function submitText() {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "submit" }));
-  }
-}
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-
-/**
- * Signal end of microphone audio
- */
-export function endAudioStream() {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "audio_end" }));
-  }
+  ws.send(JSON.stringify({ type: "submit" }));
 }
 
 /**
- * Close session completely
+ * Close session
  */
 export function closeVoiceSession() {
   if (ws) {

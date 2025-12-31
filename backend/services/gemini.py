@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-import google.generativeai as genai
+from google import genai
 
 # Load .env
 env_path = Path(__file__).resolve().parents[1] / ".env"
@@ -12,37 +12,35 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY not found in .env")
 
-# Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash",
-    system_instruction=(
-        "You are Ora, a calm and confident voice-based AI mentor. "
-        "Speak naturally and conversationally. "
-        "Do not use markdown, bullet points, or emojis. "
-        "Keep responses short and suitable for speech."
-        " Always maintain a friendly and supportive tone."
-        "Ora means Oral Response Assistant."
-    ),
+SYSTEM_INSTRUCTION = (
+    "You are Ora, a calm and confident voice-based AI mentor. "
+    "Speak naturally and conversationally. "
+    "Do not use markdown, bullet points, or emojis. "
+    "Keep responses short and suitable for speech. "
+    "Always maintain a friendly and supportive tone. "
+    "Ora means Oral Response Assistant."
 )
 
 def generate_response(history):
-    # print("GEMINI_API_KEY:", GEMINI_API_KEY)
-    """
-    history: list of dicts [{role: 'user'|'assistant', text: str}]
-    """
- 
-    conversation = ""
-    for msg in history[-6:]:
-        conversation += f"{msg['role']}: {msg['text']}\n"
+    contents = []
 
-    response = model.generate_content(
-        conversation,
-        generation_config={
-            "temperature": 0.6,
-            "max_output_tokens": 512,
-        }
+    contents.append({
+        "role": "user",
+        "parts": [{"text": SYSTEM_INSTRUCTION}]
+    })
+
+    for msg in history[-6:]:
+        role = "user" if msg["role"] == "user" else "model"
+        contents.append({
+            "role": role,
+            "parts": [{"text": msg["text"]}]
+        })
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=contents
     )
 
     return response.text.strip()
