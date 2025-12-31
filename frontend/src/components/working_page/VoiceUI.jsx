@@ -129,6 +129,10 @@ export default function VoiceUI() {
 
     audioContextRef.current ||= new AudioContext();
 
+    if (audioContextRef.current.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+
     const total = ttsChunksRef.current.reduce((s, b) => s + b.byteLength, 0);
     const merged = new Uint8Array(total);
     let offset = 0;
@@ -140,6 +144,8 @@ export default function VoiceUI() {
 
     const buffer =
       await audioContextRef.current.decodeAudioData(merged.buffer);
+
+    console.log("🔊 Playing TTS audio", buffer.duration);
 
     const src = audioContextRef.current.createBufferSource();
     src.buffer = buffer;
