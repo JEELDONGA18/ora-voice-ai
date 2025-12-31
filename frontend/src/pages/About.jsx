@@ -142,7 +142,7 @@ export default function About() {
               Credits & Acknowledgements
             </h2>
             <p className="text-gray-400">
-              Powered by <span className="text-green-400 font-medium">Google Cloud Vertex AI / Gemini</span> and
+              Powered by <span className="text-green-400 font-medium">Google Gemini</span> and
               <span className="text-green-400 font-medium"> ElevenLabs</span> for intelligent reasoning and
               natural voice synthesis.
             </p>

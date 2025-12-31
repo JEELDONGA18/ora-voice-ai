@@ -18,6 +18,7 @@ export default function VoiceUI() {
   const [messages, setMessages] = useState([]);
 
   const audioContextRef = useRef(null);
+  const ttsChunksRef = useRef([]);
 
   const recognitionRef = useRef(null);
   const transcriptRef = useRef("");
@@ -31,21 +32,6 @@ export default function VoiceUI() {
     dataArrayRef,
     permission,
   } = useMicrophone();
-
-  const playAudioOnce = async (arrayBuffer) => {
-    audioContextRef.current ||= new AudioContext();
-    await audioContextRef.current.resume();
-
-    const buffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-
-    const src = audioContextRef.current.createBufferSource();
-    src.buffer = buffer;
-    src.connect(audioContextRef.current.destination);
-    src.start();
-
-    setState("speaking");
-    src.onended = () => setState("idle");
-  };
 
   const primeAudio = async () => {
     audioContextRef.current ||= new AudioContext();
@@ -68,7 +54,8 @@ export default function VoiceUI() {
 
     startVoiceSession({
       sessionId,
-      onAudioChunk: playAudioOnce,
+      onAudioChunk: onTTSChunk,
+      onTTSEnd: playFinalTTS,
       onAIText: updateAIMessage,
     });
 
@@ -147,6 +134,10 @@ export default function VoiceUI() {
   };
 
   /* ---------------- TTS ---------------- */
+
+  const onTTSChunk = (chunk) => {
+    ttsChunksRef.current.push(chunk);
+  };
 
   const playFinalTTS = async () => {
     if (!ttsChunksRef.current.length) return;

@@ -20,13 +20,13 @@ if not ELEVENLABS_API_KEY:
 if not ELEVENLABS_VOICE_ID:
     raise RuntimeError("ELEVENLABS_VOICE_ID not set")
 
-def generate_tts_audio(text: str) -> bytes:
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+def stream_tts(text: str):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}/stream"
 
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
         "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
+        "Accept": "audio/mpeg"
     }
 
     payload = {
@@ -34,15 +34,16 @@ def generate_tts_audio(text: str) -> bytes:
         "model_id": "eleven_flash_v2",
         "voice_settings": {
             "stability": 0.45,
-            "similarity_boost": 0.85,
-        },
+            "similarity_boost": 0.85
+        }
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload, stream=True)
 
     if response.status_code != 200:
         print("ElevenLabs TTS Error:", response.text)
         response.raise_for_status()
 
-    # ✅ FULL MP3 BYTES
-    return response.content
+    for chunk in response.iter_content(chunk_size=4096):
+        if chunk:
+            yield chunk

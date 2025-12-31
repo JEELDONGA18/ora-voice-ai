@@ -8,7 +8,7 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 ## 🌐 Demo
 
 - 🔗 **Live Demo:** https://ora-voice-ai.vercel.app/
-- 🎥 **Full Working Demo (1–2 min):** *(Demo video available in `frontend/public/demo/ora-demo.mp4` or will be uploaded separately)*
+- 🎥 **Full Working Demo (1–2 min):** https://youtu.be/_2RcQeoFwm4?si=3qeJZRzhpEERQlbY
 
 ---
 
@@ -75,7 +75,7 @@ The About page presents the **team, internal workflow, and technology credits** 
 📸 **Screenshots:**
 
 ![Team](frontend/public/images/about/Team.png)
-![Credits](frontend/public/images/about/credit_Section.png)
+![Credits](frontend/public/images/about/Credit_Section.png)
 
 ---
 
@@ -119,11 +119,11 @@ This architecture ensures a **low-latency, human-like conversational experience*
 
 ### AI & Voice
 - ElevenLabs — AI Voice Synthesis
-- Google Cloud Vertex AI / Gemini — Conversational Intelligence
+- Gemini — Conversational Intelligence
 
 ### Browser APIs
 - Web Audio API
-- MediaDevices API
+- Web Speech API
 
 ---
 
@@ -131,7 +131,7 @@ This architecture ensures a **low-latency, human-like conversational experience*
 
 We sincerely thank:
 
-- **Google Cloud Vertex AI / Gemini**
+- **Google Gemini**
 - **ElevenLabs**
 
 for enabling intelligent reasoning and expressive, human-like voice synthesis.

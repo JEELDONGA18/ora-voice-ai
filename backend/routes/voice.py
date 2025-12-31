@@ -3,7 +3,7 @@ import json
 import asyncio
 
 from services.gemini import generate_response
-from services.elevenlabs_tts import generate_tts_audio
+from services.elevenlabs_tts import stream_tts
 from services.memory import get_session_memory, save_message
 
 router = APIRouter()
@@ -74,13 +74,10 @@ async def voice_ws(ws: WebSocket, session_id: str):
                 })
 
                 # stream audio
-                audio_bytes = generate_tts_audio(ai_text)
-                await ws.send_json({
-                    "type": "ai_text",
-                    "text": ai_text
-                })
+                for chunk in stream_tts(ai_text):
+                    await ws.send_bytes(chunk)
 
-                await ws.send_bytes(audio_bytes)
+                await ws.send_json({"type": "tts_end"})
 
     except WebSocketDisconnect:
         pass
