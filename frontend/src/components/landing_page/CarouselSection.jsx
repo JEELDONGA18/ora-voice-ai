@@ -4,15 +4,15 @@ import { motion } from "framer-motion";
 const items = [
   {
     title: "Natural conversation",
-    video: "/videos/voice-demo.mp4",
+    video: "../../public/videos/Natural conversation.mp4",
   },
   {
     title: "Real-time response",
-    video: "/videos/realtime-demo.mp4",
+    video: "../../public/videos/Real-time response.mp4",
   },
   {
     title: "Human-like voice",
-    video: "/videos/chat-demo.mp4",
+    video: "../../public/videos/Human-like voice.mp4",
   },
 ];
 

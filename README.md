@@ -5,6 +5,25 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 
 ---
 
+## 📑 Table of Contents
+
+- Demo
+- Core Features
+- Pages Overview
+  - Landing Page
+  - Voice App
+  - About Page
+- Workflow of Ora
+- Pros & Cons
+- Future Advancements
+- Team
+- Tech Stack
+- Credits & Acknowledgements
+- Contact
+- Final Note
+
+---
+
 ## 🌐 Demo
 
 - 🔗 **Live Demo:** https://ora-voice-ai.vercel.app/
@@ -18,9 +37,9 @@ Built for the **ElevenLabs × Google Cloud AI Challenge**, Ora enables users to 
 - 🧠 Context-Aware AI Conversations
 - 🔊 Human-Like AI Voice (ElevenLabs)
 - 📊 Real-Time Waveform Feedback
-- 🔁 Interruptible AI Responses
+- 🔁 User-Controlled Conversation Flow (Interrupt & Restart)
 - 🎨 Dark Minimal UI with Soft Green Theme
-- ⚡ Low-Latency Session-Based Flow
+- ⚡ Optimized, Low-Perceived-Latency Session-Based Flow
 
 ---
 
@@ -43,7 +62,7 @@ The landing page introduces Ora with **high-impact visuals and smooth animations
 
 ![Hero Section](frontend/public/images/landing/Hero_and_CTA_Section.png)
 ![Features](frontend/public/images/landing/FeaturesSection.png)
-![Carousel](frontend/public/images/landing/carousel.png)
+![Carousel](frontend/public/images/landing/Carousel.png)
 
 ---
 
@@ -56,15 +75,15 @@ This is the **core voice-first experience** of Ora.
 - Push-to-talk interaction
 - Dynamic waveform per system state
 - Live conversation bubbles (User ↔ AI)
-- Streaming AI text & voice
+- AI responses with streamed voice playback
 - Error & interruption handling
 - Session-aware conversation flow
 
 📸 **Screenshots:**
 
-![Microphone](frontend/public/images/voice-app/mic.png)
-![Waveform](frontend/public/images/voice-app/waveform.png)
-![Conversation](frontend/public/images/voice-app/conversation.png)
+![Microphone](frontend/public/images/voice-app/Microphone.png)
+![Waveform](frontend/public/images/voice-app/Waveform.png)
+![Conversation](frontend/public/images/voice-app/Conversation.png)
 
 ---
 
@@ -86,7 +105,7 @@ Ora follows a structured, real-time voice interaction pipeline:
 1. User grants microphone access
 2. Audio is captured in real time
 3. Speech segments are detected
-4. AI reasoning via Google Cloud Vertex AI / Gemini
+4. AI reasoning powered by Google Gemini
 5. Context-aware response generation
 6. Voice synthesis via ElevenLabs
 7. Audio streamed back to the user
@@ -94,7 +113,35 @@ Ora follows a structured, real-time voice interaction pipeline:
 
 This architecture ensures a **low-latency, human-like conversational experience**.
 
-![Credits](frontend/public/workflow/Workflow_of_Ora.png)
+![Workflow](frontend/public/workflow/Workflow_of_Ora.png)
+
+---
+
+## ⚖️ Pros and Cons
+
+| ✅ Pros | ⚠️ Cons |
+|------|------|
+| Fully voice-first interaction | No persistent cloud storage |
+| Hands-free push-to-talk UX | Session resets on refresh |
+| Human-like AI voice | Browser-dependent STT |
+| Real-time waveform feedback | Web Speech API limits |
+| Context-aware conversations | Single-language support |
+| Runs entirely in browser | No wake-word activation |
+| Clean session-based architecture | No user authentication |
+| Deployed end-to-end system | Limited mobile optimization |
+
+---
+
+## 🚀 Future Advancements
+
+- Add cloud storage for persistent conversations
+- Add User Authentication and with Database and OAuth
+- Replace Web Speech API with Whisper-based STT
+- Enable multi-language voice support
+- Implement streaming Gemini responses
+- Add wake-word activation (“Hey Ora”)
+- Make TTS playback fully interruptible
+- Improve mobile-first UI and performance
 
 ---
 
